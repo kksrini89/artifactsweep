@@ -1,5 +1,6 @@
+use std::fs;
+use std::path::{Path, PathBuf};
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
 use walkdir::WalkDir;
 
 #[derive(Parser, Debug)]
@@ -16,7 +17,11 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     Scan { path: PathBuf },
-    Clean { path: PathBuf },
+    Clean { 
+        path: PathBuf,
+        #[arg(long, default_value_t = false)]
+        dry_run: bool,
+    },
 }
 
 const JUNK_DIR_NAMES: &[&str] = &[
@@ -30,19 +35,19 @@ const JUNK_DIR_NAMES: &[&str] = &[
     "__pycache__",
 ];
 
-fn scan_junk(path: &std::path::Path) {
+fn find_junk(path: &Path) -> Vec<PathBuf> {
+    let mut found = vec![];
+
     if !path.exists() {
         eprintln!("error: path does not exist: {}", path.display());
-        return;
+        return found;
     }
     if !path.is_dir() {
         eprintln!("error: not a directory: {}", path.display());
-        return;
+        return found;
     }
 
     let mut walker = WalkDir::new(path).follow_links(false).into_iter();
-
-    let mut found = 0usize;
 
     while let Some(entry) = walker.next() {
         let entry = match entry {
@@ -62,61 +67,58 @@ fn scan_junk(path: &std::path::Path) {
         let name = entry.file_name().to_string_lossy();
 
         if JUNK_DIR_NAMES.contains(&name.as_ref()) {
-            println!(" {}", entry.path().display());
-            found += 1;
+            found.push(entry.path().to_path_buf());
             walker.skip_current_dir();
         }
     }
-    // let dirs = fs::read_dir(path);
-    // let entries = match dirs {
-    //     Ok(rd) => {
-    //         rd
-    //     }
-    //     Err(failure) => {
-    //         eprintln!("error: cannot read: {}: {failure}", path.display());
-    //         return;
-    //     }
-    // };
 
-    // for entry in entries {
-    //     let entry = match entry {
-    //         Ok(dir_entry) => {
-    //             dir_entry
-    //         },
-    //         Err(failure) => {
-    //             eprint!("warning: skipped entry: {}", failure);
-    //             continue;
-    //         }
-    //     };
+    found
+}
 
-    //     let file_type = match entry.file_type() {
-    //         Ok(file_type) => {
-    //             file_type
-    //         },
-    //         Err(failure) => {
-    //             eprintln!("warning:{}: {failure}", entry.path().display());
-    //             continue;
-    //         }
-    //     };
+fn print_junk(paths: &[PathBuf]) {
+    if paths.is_empty() {
+        println!("No known junk folders found.");
+        return;
+    }
 
-    //     if !file_type.is_dir() {
-    //         continue;
-    //     }
+    for path in paths {
+        println!(" {}", path.display());
+    }
 
-    //     let name = entry.file_name();
+    println!("Found {} junk folder(s).", paths.len());
+}
 
-    //     let name = name.to_string_lossy();
+fn delete_junk(paths: &[PathBuf], dry_run: bool) {
+    if paths.is_empty() {
+        println!("Nothing to clean.");
+        return;
+    }
 
-    //     if JUNK_DIR_NAMES.contains(&name.as_ref()) {
-    //         found += 1;
-    //         println!(" {}", entry.path().display());
-    //     }
-    // }
+    let mut ok: usize = 0;
 
-    if found == 0 {
-        println!("No known junk folders under {}", path.display());
+    for path in paths {
+        if dry_run {
+            println!(" [dry-run] would remove {}", path.display());
+            ok += 1;
+            continue;
+        }
+
+        match fs::remove_dir_all(path) {
+            Ok(()) => {
+                println!(" removed {}", path.display());
+                ok += 1;
+            }
+            Err(err) => {
+                eprintln!(" FAILED {}: {err}", path.display());
+            }
+        }
+    }
+
+    if dry_run {
+        println!("Dry-run complete: {ok} folder(s) would be removed.");
+        println!("Re-run without --dry-run to actually delete.");
     } else {
-        println!("Found {found} junk folder(s).");
+        println!("Done: removed {ok} of {} folder(s).", paths.len());
     }
 }
 
@@ -126,11 +128,19 @@ fn main() {
     match cli.command {
         Commands::Scan { path } => {
             println!("Scanning under {} ...", path.display());
-            scan_junk(&path);
+            let paths = find_junk(&path);
+            print_junk(&paths);
         }
-        Commands::Clean { path } => {
-            println!("clean: not implemented yet ({})", path.display());
+        Commands::Clean { path, dry_run } => {
+            let mode = if dry_run { "DRY_RUN" } else { "LIVE" };
+            println!("Cleaning under {} [{mode}] ...", path.display());
+
+            let paths = find_junk(&path);
+            print_junk(&paths);
+
+            println!();
+
+            delete_junk(&paths, dry_run);
         }
     }
-    // println!("{cli:#?}");
 }
