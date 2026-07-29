@@ -43,7 +43,7 @@ const JUNK_DIR_NAMES: &[&str] = &[
     "__pycache__",
 ];
 
-fn find_junk(path: &Path) -> Vec<JunkEntry> {
+fn find_junk_paths(path: &Path) -> Vec<PathBuf> {
     let mut found = vec![];
 
     if !path.exists() {
@@ -73,14 +73,15 @@ fn find_junk(path: &Path) -> Vec<JunkEntry> {
         let name = entry.file_name().to_string_lossy();
 
         if JUNK_DIR_NAMES.contains(&name.as_ref()) {
-            let path = entry.path().to_path_buf();
-            let size_bytes = dir_size(&path);
-            found.push(JunkEntry { path, size_bytes });
+            // let path = entry.path().to_path_buf();
+            // let size_bytes = dir_size(&path);
+            // found.push(JunkEntry { path, size_bytes });
+            found.push(entry.path().to_path_buf());
             walker.skip_current_dir();
         }
     }
 
-    found.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+    // found.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
 
     found
 }
@@ -101,8 +102,11 @@ fn print_junk_report(paths: &[JunkEntry]) {
         );
     }
 
-    println!("Found {} junk folder(s). Total: {}", paths.len(),
-human_bytes(total as f64));
+    println!(
+        "Found {} junk folder(s). Total: {}",
+        paths.len(),
+        human_bytes(total as f64)
+    );
 }
 
 fn delete_junk(paths: &[JunkEntry], dry_run: bool) {
@@ -115,18 +119,22 @@ fn delete_junk(paths: &[JunkEntry], dry_run: bool) {
 
     for entry in paths {
         if dry_run {
-            println!(" [dry-run] would remove {:>10}  {}",
-            human_bytes(entry.size_bytes as f64),
-            entry.path.display());
+            println!(
+                " [dry-run] would remove {:>10}  {}",
+                human_bytes(entry.size_bytes as f64),
+                entry.path.display()
+            );
             ok += 1;
             continue;
         }
 
         match fs::remove_dir_all(&entry.path) {
             Ok(()) => {
-                println!(" removed {:>10}  {}",
-                human_bytes(entry.size_bytes as f64),
-                entry.path.display());
+                println!(
+                    " removed {:>10}  {}",
+                    human_bytes(entry.size_bytes as f64),
+                    entry.path.display()
+                );
                 ok += 1;
             }
             Err(err) => {
@@ -154,25 +162,43 @@ fn dir_size(dir: &Path) -> u64 {
         .sum()
 }
 
+fn size_entries(paths: &[PathBuf]) -> Vec<JunkEntry> {
+    let mut entries = Vec::with_capacity(paths.len());
+
+    for path in paths {
+        let size_bytes = dir_size(path);
+        entries.push(JunkEntry {
+            path: path.clone(),
+            size_bytes,
+        });
+    }
+
+    entries.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+
+    entries
+}
+
 fn main() {
     let cli = Cli::parse();
 
     match cli.command {
         Commands::Scan { path } => {
             println!("Scanning under {} ...", path.display());
-            let paths = find_junk(&path);
-            print_junk_report(&paths);
+            let paths = find_junk_paths(&path);
+            let entries = size_entries(&paths);
+            print_junk_report(&entries);
         }
         Commands::Clean { path, dry_run } => {
             let mode = if dry_run { "DRY_RUN" } else { "LIVE" };
             println!("Cleaning under {} [{mode}] ...", path.display());
 
-            let paths = find_junk(&path);
-            print_junk_report(&paths);
+            let paths = find_junk_paths(&path);
+            let entries = size_entries(&paths);
+            print_junk_report(&entries);
 
             println!();
 
-            delete_junk(&paths, dry_run);
+            delete_junk(&entries, dry_run);
         }
     }
 }
