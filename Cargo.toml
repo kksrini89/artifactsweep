@@ -5,4 +5,5 @@ edition = "2024"
 
 [dependencies]
 clap = { version = "4.6.4", features = ["derive"] }
+human_bytes = "0.4.3"
 walkdir = "2.5.0"

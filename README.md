@@ -77,6 +77,6 @@ dev-clean clean --help
 
 ### Notes
 
-• Only folders whose names match the built-in junk list are touched.
-• Parent project folders are kept; only matching junk directories are removed.
-• Always run scan or clean --dry-run before a live clean on large trees.
+- Only folders whose names match the built-in junk list are touched.
+- Parent project folders are kept; only matching junk directories are removed.
+- Always run scan or clean --dry-run before a live clean on large trees.

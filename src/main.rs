@@ -1,6 +1,7 @@
+use clap::{Parser, Subcommand};
+use human_bytes::human_bytes;
 use std::fs;
 use std::path::{Path, PathBuf};
-use clap::{Parser, Subcommand};
 use walkdir::WalkDir;
 
 #[derive(Parser, Debug)]
@@ -16,12 +17,19 @@ struct Cli {
 
 #[derive(Subcommand, Debug)]
 enum Commands {
-    Scan { path: PathBuf },
-    Clean { 
+    Scan {
+        path: PathBuf,
+    },
+    Clean {
         path: PathBuf,
         #[arg(long, default_value_t = false)]
         dry_run: bool,
     },
+}
+
+struct JunkEntry {
+    path: PathBuf,
+    size_bytes: u64,
 }
 
 const JUNK_DIR_NAMES: &[&str] = &[
@@ -35,7 +43,7 @@ const JUNK_DIR_NAMES: &[&str] = &[
     "__pycache__",
 ];
 
-fn find_junk(path: &Path) -> Vec<PathBuf> {
+fn find_junk(path: &Path) -> Vec<JunkEntry> {
     let mut found = vec![];
 
     if !path.exists() {
@@ -51,9 +59,7 @@ fn find_junk(path: &Path) -> Vec<PathBuf> {
 
     while let Some(entry) = walker.next() {
         let entry = match entry {
-            Ok(e) => {
-                e
-            },
+            Ok(e) => e,
             Err(err) => {
                 eprintln!("warning: skipped entry: {err}");
                 continue;
@@ -67,28 +73,39 @@ fn find_junk(path: &Path) -> Vec<PathBuf> {
         let name = entry.file_name().to_string_lossy();
 
         if JUNK_DIR_NAMES.contains(&name.as_ref()) {
-            found.push(entry.path().to_path_buf());
+            let path = entry.path().to_path_buf();
+            let size_bytes = dir_size(&path);
+            found.push(JunkEntry { path, size_bytes });
             walker.skip_current_dir();
         }
     }
 
+    found.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+
     found
 }
 
-fn print_junk(paths: &[PathBuf]) {
+fn print_junk_report(paths: &[JunkEntry]) {
     if paths.is_empty() {
         println!("No known junk folders found.");
         return;
     }
 
-    for path in paths {
-        println!(" {}", path.display());
+    let total: u64 = paths.iter().map(|e| e.size_bytes).sum();
+
+    for entry in paths {
+        println!(
+            " {:>10}   {}",
+            human_bytes(entry.size_bytes as f64),
+            entry.path.display()
+        );
     }
 
-    println!("Found {} junk folder(s).", paths.len());
+    println!("Found {} junk folder(s). Total: {}", paths.len(),
+human_bytes(total as f64));
 }
 
-fn delete_junk(paths: &[PathBuf], dry_run: bool) {
+fn delete_junk(paths: &[JunkEntry], dry_run: bool) {
     if paths.is_empty() {
         println!("Nothing to clean.");
         return;
@@ -96,20 +113,24 @@ fn delete_junk(paths: &[PathBuf], dry_run: bool) {
 
     let mut ok: usize = 0;
 
-    for path in paths {
+    for entry in paths {
         if dry_run {
-            println!(" [dry-run] would remove {}", path.display());
+            println!(" [dry-run] would remove {:>10}  {}",
+            human_bytes(entry.size_bytes as f64),
+            entry.path.display());
             ok += 1;
             continue;
         }
 
-        match fs::remove_dir_all(path) {
+        match fs::remove_dir_all(&entry.path) {
             Ok(()) => {
-                println!(" removed {}", path.display());
+                println!(" removed {:>10}  {}",
+                human_bytes(entry.size_bytes as f64),
+                entry.path.display());
                 ok += 1;
             }
             Err(err) => {
-                eprintln!(" FAILED {}: {err}", path.display());
+                eprintln!(" FAILED {}: {err}", entry.path.display());
             }
         }
     }
@@ -122,6 +143,17 @@ fn delete_junk(paths: &[PathBuf], dry_run: bool) {
     }
 }
 
+fn dir_size(dir: &Path) -> u64 {
+    WalkDir::new(dir)
+        .follow_links(false)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file())
+        .filter_map(|e| e.metadata().ok())
+        .map(|m| m.len())
+        .sum()
+}
+
 fn main() {
     let cli = Cli::parse();
 
@@ -129,14 +161,14 @@ fn main() {
         Commands::Scan { path } => {
             println!("Scanning under {} ...", path.display());
             let paths = find_junk(&path);
-            print_junk(&paths);
+            print_junk_report(&paths);
         }
         Commands::Clean { path, dry_run } => {
             let mode = if dry_run { "DRY_RUN" } else { "LIVE" };
             println!("Cleaning under {} [{mode}] ...", path.display());
 
             let paths = find_junk(&path);
-            print_junk(&paths);
+            print_junk_report(&paths);
 
             println!();
 
