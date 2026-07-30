@@ -4,6 +4,11 @@
 
 - Scan or remove common developer junk folders (`node_modules`, `target`, `dist`, `build`, `.angular`, `.next`, `.cache`, `__pycache__`) under a path you choose.
 
+## Install (prebuilt)
+
+Download the binary for your OS from
+[Releases](https://github.com/kksrini89/dev-clean/releases).
+
 ## Requirements
 
 - Rust / Cargo ([rustup](https://rustup.rs))
