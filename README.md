@@ -1,8 +1,8 @@
 # dev-clean
 
-- Disk clean-up utility for developers, not a file deletion tool.
+- **DevClean is a cross-platform Rust-based disk cleanup utility that safely removes generated development artifacts to reclaim storage space.**
 
-- Scan or remove common developer junk folders (`node_modules`, `target`, `dist`, and more) under a path you choose.
+- Generally, the artifcats are (`node_modules`, `target`, `dist`, and more) under a path you choose.
 
 ## Install
 
