@@ -8,26 +8,26 @@
 
 ### Option A - Prebuilt binary (no Rust required)
 
-1. Open [Releases](https://github.com/kksrini89/dev-clean/releases)
+1. Open [Releases](https://github.com/kksrini89/artifactsweep/releases)
 2. Download the asset for your OS:
 
 | OS | Asset (example) |
 |----|------------------|
-| Windows x64 | `dev-clean-windows-x86_64.exe` |
-| Linux x64 | `dev-clean-linux-x86_64` |
-| macOS | `dev-clean-macos` |
+| Windows x64 | `sweep-windows-x86_64.exe` |
+| Linux x64 | `sweep-linux-x86_64` |
+| macOS | `sweep-macos` |
 
 3. (Linux/macOS) Make it executable and move it onto your `PATH` if you like:
 
    ```bash
-   chmod +x dev-clean-linux-x86_64   # or dev-clean-macos
-   sudo mv dev-clean-linux-x86_64 /usr/local/bin/dev-clean
+   chmod +x sweep-linux-x86_64   # or sweep-macos
+   sudo mv sweep-linux-x86_64 /usr/local/bin/sweep
 
-4. On Windows, rename to dev-clean.exe if you want, then place it in a folder that is on your PATH, or run it by full path.
+4. On Windows, rename to sweep.exe if you want, then place it in a folder that is on your PATH, or run it by full path.
 
 5. Check:
 
-```dev-clean --help```
+```sweep --help```
 
 
 ### Pre-requisite for Option B & C
@@ -37,7 +37,7 @@
 ### Option B — From source (Rust / Cargo)
 
 ```bash
-git clone https://github.com/kksrini89/dev-clean.git
+git clone https://github.com/kksrini89/artifactsweep.git
 cd dev-clean
 cargo install --path .
 dev-clean --help
@@ -47,8 +47,8 @@ dev-clean --help
 
 ```bash
 cargo build --release
-# Windows: target/release/dev-clean.exe
-# Linux/macOS: target/release/dev-clean
+# Windows: target/release/sweep.exe
+# Linux/macOS: target/release/sweep
 ```
 
 ## Build & run
@@ -66,40 +66,40 @@ Release binary:
 
 ```bash
 cargo build --release
-./target/release/dev-clean scan <PATH>    # Git Bash / Unix-style
+./target/release/sweep scan <PATH>    # Git Bash / Unix-style
 ```
 
 Optional install (puts dev-clean on your PATH):
 
 ```bash
 cargo install --path .
-dev-clean scan <PATH>
+sweep scan <PATH>
 ```
 
 ## Commands
 
 #### scan
 
-List junk folders under PATH (read-only).
+List artifact folders under PATH (read-only).
 
 ```bash
-dev-clean scan .
-dev-clean scan /d/projects/opensource
+sweep scan .
+sweep scan /d/projects/opensource
 ```
 
 #### clean
 
-Delete the same junk folders scan would find.
+Delete the same artifact folders scan would find.
 
 Preview first (recommended):
 
 ```bash
-dev-clean clean <PATH> --dry-run
+sweep clean <PATH> --dry-run
 ```
 
 Delete for real:
 ```bash
-dev-clean clean <PATH>
+sweep clean <PATH>
 ```
 
 #### Paths in Git Bash
@@ -107,22 +107,22 @@ dev-clean clean <PATH>
 Prefer forward-slash or Git Bash paths so \ is not eaten by the shell:
 
 ```bash
-dev-clean scan /d/Personal/projects/my-app
-dev-clean scan D:/Personal/projects/my-app
-dev-clean scan 'D:\Personal\projects\my-app'   # quoted backslashes OK
+sweep scan /d/Personal/projects/my-app
+sweep scan D:/Personal/projects/my-app
+sweep scan 'D:\Personal\projects\my-app'   # quoted backslashes OK
 ```
 
 #### Help
 
 ```bash
-dev-clean --help
-dev-clean scan --help
-dev-clean clean --help
+sweep --help
+sweep scan --help
+sweep clean --help
 ```
 
 #### What counts as junk?
 
-Folders are matched by directory name only (anywhere under `PATH`). When a match is found, the tool does not walk inside it for further junk names.
+Folders are matched by directory name only (anywhere under `PATH`). When a match is found, the tool does not walk inside it for further artifact names.
 
 Defined in [`src/junk.rs`](see `src/junk.rs`):
 

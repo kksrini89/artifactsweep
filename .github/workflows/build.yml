@@ -1,11 +1,3 @@
-# build.yml — multi-OS release *build* (artifacts only, no GitHub Release yet)
-#
-# Triggers:
-#   - push to main
-#   - manual "Run workflow" in the Actions tab
-#
-# Matrix: Windows, Linux, macOS in parallel
-
 name: build
 
 on:
@@ -25,15 +17,15 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: dev-clean-linux-x86_64
+            artifact_name: sweep-linux-x86_64
             binary_path: target/release/sweep
 
           - os: windows-latest
-            artifact_name: dev-clean-windows-x86_64
+            artifact_name: sweep-windows-x86_64
             binary_path: target/release/sweep.exe
 
           - os: macos-latest
-            artifact_name: dev-clean-macos
+            artifact_name: sweep-macos
             binary_path: target/release/sweep
 
     steps:

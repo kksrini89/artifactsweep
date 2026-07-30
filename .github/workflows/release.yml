@@ -1,10 +1,3 @@
-# release.yml — publish multi-OS binaries to a GitHub Release
-#
-# Trigger: push a version tag, e.g. v0.1.0
-#
-#   git tag v0.1.0
-#   git push origin v0.1.0
-
 name: release
 
 on:
@@ -25,15 +18,15 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            asset_name: dev-clean-linux-x86_64
+            asset_name: sweep-linux-x86_64
             binary_path: target/release/sweep
 
           - os: windows-latest
-            asset_name: dev-clean-windows-x86_64.exe
+            asset_name: sweep-windows-x86_64.exe
             binary_path: target/release/sweep.exe
 
           - os: macos-latest
-            asset_name: dev-clean-macos
+            asset_name: sweep-macos
             binary_path: target/release/sweep
 
     steps:
