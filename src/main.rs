@@ -4,6 +4,7 @@ use rayon::prelude::*;
 use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
+use indicatif::{ProgressBar, ProgressStyle};
 
 #[derive(Parser, Debug)]
 #[command(
@@ -99,12 +100,31 @@ fn dir_size(dir: &Path) -> u64 {
 }
 
 fn size_entries(paths: &[PathBuf]) -> Vec<JunkEntry> {
+    if paths.is_empty() {
+        return Vec::new();
+    }
+
+    let pb = ProgressBar::new(paths.len() as u64);
+    pb.set_style(
+        ProgressStyle::with_template(
+            "{spinner:.green} [{bar:40.cyan/blue}] {pos}/{len} sizing",
+        )
+        .unwrap()
+        .progress_chars("=>-"),
+    );
+
     let mut entries: Vec<JunkEntry> = paths.par_iter()
-    .map(|path| JunkEntry {
-        path: path.clone(),
-        size_bytes: dir_size(&path)
-    })
-    .collect();
+        .map(|path| {
+            let entry = JunkEntry {
+                path: path.clone(),
+                size_bytes: dir_size(&path)
+            };
+            pb.inc(1);
+            entry
+        })
+        .collect();
+
+    pb.finish_and_clear();
 
     entries.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
 
