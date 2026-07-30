@@ -3,7 +3,7 @@ name = "artifactsweep"
 version = "0.2.2"
 edition = "2024"
 rust-version = "1.97"
-description = "Cross-platform Rust-based disk cleanup utility that safely removes generated development artifacts to reclaim storage space."
+description = "Cross-platform CLI for scanning and cleaning generated development artifacts to reclaim disk space."
 readme = "README.md"
 keywords = [
     "artifactsweep",

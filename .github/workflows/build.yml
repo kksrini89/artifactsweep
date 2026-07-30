@@ -26,15 +26,15 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: dev-clean-linux-x86_64
-            binary_path: target/release/dev-clean
+            binary_path: target/release/sweep
 
           - os: windows-latest
             artifact_name: dev-clean-windows-x86_64
-            binary_path: target/release/dev-clean.exe
+            binary_path: target/release/sweep.exe
 
           - os: macos-latest
             artifact_name: dev-clean-macos
-            binary_path: target/release/dev-clean
+            binary_path: target/release/sweep
 
     steps:
       - name: Checkout repository
