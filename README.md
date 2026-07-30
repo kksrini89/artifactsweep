@@ -1,6 +1,6 @@
-# dev-clean
+# 🧹artifactsweep
 
-- **DevClean is a cross-platform Rust-based disk cleanup utility that safely removes generated development artifacts to reclaim storage space.**
+- **Artifact Sweep** is a cross-platform Rust-based disk cleanup utility that safely removes generated development artifacts to reclaim storage space.
 
 - Generally, the artifcats are (`node_modules`, `target`, `dist`, and more) under a path you choose.
 

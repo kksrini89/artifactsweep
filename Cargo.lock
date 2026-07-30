@@ -53,6 +53,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "artifactsweep"
+version = "0.2.2"
+dependencies = [
+ "clap",
+ "human_bytes",
+ "indicatif",
+ "rayon",
+ "walkdir",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -146,17 +157,6 @@ name = "crossbeam-utils"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61803da095bee82a81bb1a452ecc25d3b2f1416d1897eb86430c6159ef717c17"
-
-[[package]]
-name = "dev-clean"
-version = "0.2.1"
-dependencies = [
- "clap",
- "human_bytes",
- "indicatif",
- "rayon",
- "walkdir",
-]
 
 [[package]]
 name = "either"

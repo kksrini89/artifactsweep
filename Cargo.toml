@@ -1,11 +1,14 @@
 [package]
-name = "dev-clean"
-version = "0.2.1"
+name = "artifactsweep"
+version = "0.2.2"
 edition = "2024"
 rust-version = "1.97"
-description = "disk clean-up utility for developers, not a file deletion tool."
+description = "Cross-platform Rust-based disk cleanup utility that safely removes generated development artifacts to reclaim storage space."
 readme = "README.md"
 keywords = [
+    "artifactsweep",
+    "artifact",
+    "sweep",
     "clean",
     "scan",
     "junk",
@@ -14,7 +17,11 @@ keywords = [
 ]
 categories = ["command-line-interface"]
 license = "MIT"
-repository = "https://github.com/kksrini89/dev-clean"
+repository = "https://github.com/kksrini89/artifactsweep"
+
+[[bin]]
+name = "sweep"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4.6.4", features = ["derive"] }
