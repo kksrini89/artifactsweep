@@ -1,0 +1,68 @@
+# release.yml — publish multi-OS binaries to a GitHub Release
+#
+# Trigger: push a version tag, e.g. v0.1.0
+#
+#   git tag v0.1.0
+#   git push origin v0.1.0
+
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'   # v0.1.0, v1.0.0-rc1, etc.
+
+permissions:
+  contents: write   # needed to create/upload a GitHub Release
+
+jobs:
+  build-and-release:
+    name: release (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            asset_name: dev-clean-linux-x86_64
+            binary_path: target/release/dev-clean
+
+          - os: windows-latest
+            asset_name: dev-clean-windows-x86_64.exe
+            binary_path: target/release/dev-clean.exe
+
+          - os: macos-latest
+            asset_name: dev-clean-macos
+            binary_path: target/release/dev-clean
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust (stable)
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build release
+        run: cargo build --release
+
+      - name: Smoke test --help
+        run: ${{ matrix.binary_path }} --help
+
+      # Give the uploaded file a clear, OS-specific name
+      - name: Stage asset (Unix)
+        if: runner.os != 'Windows'
+        run: cp "${{ matrix.binary_path }}" "${{ matrix.asset_name }}"
+
+      - name: Stage asset (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Copy-Item "${{ matrix.binary_path }}" "${{ matrix.asset_name }}"
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
