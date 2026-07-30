@@ -111,6 +111,7 @@ fn size_entries(paths: &[PathBuf]) -> Vec<JunkEntry> {
         )
         .unwrap()
         .progress_chars("=>-"),
+        // ProgressStyle::default_bar(),
     );
 
     let mut entries: Vec<JunkEntry> = paths.par_iter()
