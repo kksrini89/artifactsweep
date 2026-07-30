@@ -80,3 +80,4 @@ dev-clean clean --help
 - Only folders whose names match the built-in junk list are touched.
 - Parent project folders are kept; only matching junk directories are removed.
 - Always run scan or clean --dry-run before a live clean on large trees.
+- Sizing uses parallel workers with `rayon` crate + progress bar with `indicatif` crate
