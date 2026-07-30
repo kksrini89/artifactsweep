@@ -164,11 +164,11 @@ pub fn delete_junk(paths: &[JunkEntry], dry_run: bool) {
 
     for entry in paths {
         if dry_run {
-            println!(
-                " [dry-run] would remove {:>10}  {}",
-                human_bytes(entry.size_bytes as f64),
-                entry.path.display()
-            );
+            // println!(
+            //     " [dry-run] would remove {:>10}  {}",
+            //     human_bytes(entry.size_bytes as f64),
+            //     entry.path.display()
+            // );
             ok += 1;
             continue;
         }
