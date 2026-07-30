@@ -114,7 +114,8 @@ fn size_entries(paths: &[PathBuf]) -> Vec<JunkEntry> {
         // ProgressStyle::default_bar(),
     );
 
-    let mut entries: Vec<JunkEntry> = paths.par_iter()
+    let mut entries: Vec<JunkEntry> = paths
+        .par_iter()
         .map(|path| {
             let entry = JunkEntry {
                 path: path.clone(),
