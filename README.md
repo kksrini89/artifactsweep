@@ -51,9 +51,6 @@ cargo build --release
 # Linux/macOS: target/release/dev-clean
 ```
 
-CI builds for Windows, Linux, and macOS on every push to main and publishes binaries when you push a version tag (v*).
-
-
 ## Build & run
 
 From the project directory:
@@ -117,38 +114,62 @@ dev-clean scan 'D:\Personal\projects\my-app'   # quoted backslashes OK
 
 #### Help
 
+```bash
 dev-clean --help
 dev-clean scan --help
 dev-clean clean --help
-
+```
 
 #### What counts as junk?
 
 Folders are matched by directory name only (anywhere under `PATH`). When a match is found, the tool does not walk inside it for further junk names.
 
-Current list (see `src/junk.rs`):
+Defined in [`src/junk.rs`](see `src/junk.rs`):
 
-┌────────────────┬──────────────────────────────────────────────┐
-│ Ecosystem      │ Names                                        │
-├────────────────┼──────────────────────────────────────────────┤
-│ JavaScript /   │ node_modules, dist, build, .angular, .next,  │
-│ TypeScript     │ .nuxt, .turbo, .cache, .parcel-cache, .      │
-│                │ svelte-kit, .vite                            │
-├────────────────┼──────────────────────────────────────────────┤
-│ Rust           │ target                                       │
-├────────────────┼──────────────────────────────────────────────┤
-│ Python         │ __pycache__                                  │
-├────────────────┼──────────────────────────────────────────────┤
-│ Java / Kotlin  │ .gradle                                      │
-├────────────────┼──────────────────────────────────────────────┤
-│ C# / .NET      │ bin, obj                                     │
-├────────────────┼──────────────────────────────────────────────┤
-│ Flutter / Dart │ .dart_tool                                   │
-├────────────────┼──────────────────────────────────────────────┤
-│ Generic        │ coverage, out, tmp, temp                     │
-└────────────────┴──────────────────────────────────────────────┘
+### JavaScript / TypeScript
 
-Warning: Names like bin, obj, tmp, temp, out, and build appear in many stacks. Always run scan or clean --dry-run before a live clean on a large or unfamiliar tree. Parent project folders are kept; only matching directories are removed.
+- `node_modules`
+- `dist`
+- `build`
+- `.angular`
+- `.next`
+- `.nuxt`
+- `.turbo`
+- `.cache`
+- `.parcel-cache`
+- `.svelte-kit`
+- `.vite`
+
+### Rust
+
+- `target`
+
+### Python
+
+- `__pycache__`
+
+### Java / Kotlin
+
+- `.gradle`
+
+### C# / .NET
+
+- `bin`
+- `obj`
+
+### Flutter / Dart
+
+- `.dart_tool`
+
+### Generic
+
+- `coverage`
+- `out`
+- `tmp`
+- `temp`
+
+> ***Warning***: Names like bin, obj, tmp, temp, out, and build appear in many stacks. 
+> Always run scan or clean --dry-run before a live clean on a large or unfamiliar tree. Parent project folders are kept; only matching directories are removed.
 
 
 ### Notes
