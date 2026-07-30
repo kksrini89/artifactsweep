@@ -1,5 +1,6 @@
 use clap::{Parser, Subcommand};
 use human_bytes::human_bytes;
+use rayon::prelude::*;
 use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
@@ -86,6 +87,30 @@ fn find_junk_paths(path: &Path) -> Vec<PathBuf> {
     found
 }
 
+fn dir_size(dir: &Path) -> u64 {
+    WalkDir::new(dir)
+        .follow_links(false)
+        .into_iter()
+        .filter_map(|e| e.ok())
+        .filter(|e| e.file_type().is_file())
+        .filter_map(|e| e.metadata().ok())
+        .map(|m| m.len())
+        .sum()
+}
+
+fn size_entries(paths: &[PathBuf]) -> Vec<JunkEntry> {
+    let mut entries: Vec<JunkEntry> = paths.par_iter()
+    .map(|path| JunkEntry {
+        path: path.clone(),
+        size_bytes: dir_size(&path)
+    })
+    .collect();
+
+    entries.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+
+    entries
+}
+
 fn print_junk_report(paths: &[JunkEntry]) {
     if paths.is_empty() {
         println!("No known junk folders found.");
@@ -149,33 +174,6 @@ fn delete_junk(paths: &[JunkEntry], dry_run: bool) {
     } else {
         println!("Done: removed {ok} of {} folder(s).", paths.len());
     }
-}
-
-fn dir_size(dir: &Path) -> u64 {
-    WalkDir::new(dir)
-        .follow_links(false)
-        .into_iter()
-        .filter_map(|e| e.ok())
-        .filter(|e| e.file_type().is_file())
-        .filter_map(|e| e.metadata().ok())
-        .map(|m| m.len())
-        .sum()
-}
-
-fn size_entries(paths: &[PathBuf]) -> Vec<JunkEntry> {
-    let mut entries = Vec::with_capacity(paths.len());
-
-    for path in paths {
-        let size_bytes = dir_size(path);
-        entries.push(JunkEntry {
-            path: path.clone(),
-            size_bytes,
-        });
-    }
-
-    entries.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
-
-    entries
 }
 
 fn main() {
