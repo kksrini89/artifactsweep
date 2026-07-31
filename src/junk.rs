@@ -10,7 +10,7 @@ pub struct JunkEntry {
     size_bytes: u64,
 }
 
-const JUNK_DIR_NAMES: &[&str] = &[
+const ARTIFACT_FOLDER_NAMES: &[&str] = &[
     // JavaScript/TypeScript
     "node_modules",
     "dist",
@@ -76,7 +76,7 @@ pub fn find_junk_paths(path: &Path) -> Vec<PathBuf> {
 
         let name = entry.file_name().to_string_lossy();
 
-        if JUNK_DIR_NAMES.contains(&name.as_ref()) {
+        if ARTIFACT_FOLDER_NAMES.contains(&name.as_ref()) {
             found.push(entry.path().to_path_buf());
             walker.skip_current_dir();
         }

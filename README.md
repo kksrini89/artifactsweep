@@ -177,6 +177,14 @@ Defined in [`src/junk.rs`](see `src/junk.rs`):
 - Sizing uses parallel workers with `rayon` crate + progress bar with `indicatif` crate
 - Prebuilt macOS builds come from GitHub’s macos-latest runner (often Apple Silicon). If a binary does not run on your Mac, build from source with Option B.
 
+## Screenshots
+
+On one of my project folders alone, it reclaimed nearly 5 GB of storage.
+
+![Tried clean with dry-run](screenshots/clean-with-dry-run.png "Clean with dry-run")
+
+![Tried real clean](screenshots/real-clean.png "Real clean")
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
