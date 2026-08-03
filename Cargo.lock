@@ -53,10 +53,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "artifactsweep"
+name = "artifactsweep-cli"
 version = "0.2.2"
 dependencies = [
+ "artifactsweep-core",
  "clap",
+]
+
+[[package]]
+name = "artifactsweep-core"
+version = "0.2.2"
+dependencies = [
  "human_bytes",
  "indicatif",
  "rayon",
