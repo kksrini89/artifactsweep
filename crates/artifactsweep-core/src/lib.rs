@@ -4,7 +4,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 use indicatif::{ProgressBar, ProgressStyle};
+use serde::Serialize;
 
+#[derive(Debug, Clone, Serialize)]
 pub struct JunkEntry {
     pub path: PathBuf,
     pub size_bytes: u64,

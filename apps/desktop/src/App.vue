@@ -1,40 +1,167 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 
 const greetMsg = ref("");
 const name = ref("");
+
+type JunkEntry = {
+  path: string;
+  size_bytes: number;
+}
+
+const rootPath = ref<string | null>(null);
+const entries = ref<JunkEntry[]>([]);
+const busy = ref(false);
+const error = ref<string | null>(null);
+
+const totalBytes = computed(() =>
+  entries.value.reduce((sum, e) => sum + e.size_bytes, 0),
+);
+
+function formatSize(bytes: number): string {
+  const units = ["B", "KiB", "MiB", "GiB"];
+  let n = bytes;
+  let i = 0;
+  while (n >= 1024 && i < units.length - 1) {
+    n /= 1024;
+    i++;
+  }
+  return `${n.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+}
 
 async function greet() {
   // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
   greetMsg.value = await invoke("greet", { name: name.value });
 }
+
+async function chooseFolder() {
+  error.value = null;
+  const selected = await open({
+    directory: true,
+    multiple: false
+  });
+
+  if (selected == null) {
+    return;
+  }
+
+  rootPath.value = selected as string;
+  entries.value = [];
+
+}
+
+async function runScan() {
+  if (!rootPath.value) {
+    error.value = "Choose a folder first.";
+    return;
+  }
+  busy.value = true;
+  error.value = null;
+  try {
+    entries.value = await invoke<JunkEntry[]>("scan", {
+      path: rootPath.value,
+    });
+  } catch (e) {
+    error.value = String(e);
+    entries.value = [];
+  } finally {
+    busy.value = false;
+  }
+}
 </script>
 
 <template>
-  <main class="container">
-    <h1>Welcome to Tauri + Vue</h1>
+  <main class="wrap">
+    <h1>ArtifactSweep</h1>
 
     <div class="row">
-      <a href="https://vite.dev" target="_blank">
-        <img src="/vite.svg" class="logo vite" alt="Vite logo" />
-      </a>
-      <a href="https://tauri.app" target="_blank">
-        <img src="/tauri.svg" class="logo tauri" alt="Tauri logo" />
-      </a>
-      <a href="https://vuejs.org/" target="_blank">
-        <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-      </a>
+      <button type="button" @click="chooseFolder" :disabled="busy">
+        Choose folder
+      </button>
+      <button
+        type="button"
+        @click="runScan"
+        :disabled="busy || !rootPath"
+      >
+        {{ busy ? "Scanning…" : "Scan" }}
+      </button>
     </div>
-    <p>Click on the Tauri, Vite, and Vue logos to learn more.</p>
 
-    <form class="row" @submit.prevent="greet">
-      <input id="greet-input" v-model="name" placeholder="Enter a name..." />
-      <button type="submit">Greet</button>
-    </form>
-    <p>{{ greetMsg }}</p>
+    <p class="path" v-if="rootPath">Folder: {{ rootPath }}</p>
+    <p class="error" v-if="error">{{ error }}</p>
+
+    <p v-if="entries.length">
+      Found {{ entries.length }} folder(s). Total: {{ formatSize(totalBytes) }}
+    </p>
+    <p v-else-if="rootPath && !busy && !error">No results yet — click Scan.</p>
+
+    <table v-if="entries.length">
+      <thead>
+        <tr>
+          <th>Size</th>
+          <th>Path</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(e, i) in entries" :key="i">
+          <td class="size">{{ formatSize(e.size_bytes) }}</td>
+          <td class="path-cell">{{ e.path }}</td>
+        </tr>
+      </tbody>
+    </table>
   </main>
 </template>
+
+<style scoped>
+.wrap {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  font-family: system-ui, sans-serif;
+}
+.row {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+button {
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.path {
+  word-break: break-all;
+  color: #333;
+}
+.error {
+  color: #b00020;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+th,
+td {
+  border-bottom: 1px solid #ddd;
+  padding: 0.5rem;
+  text-align: left;
+}
+.size {
+  width: 7rem;
+  white-space: nowrap;
+}
+.path-cell {
+  word-break: break-all;
+  font-family: ui-monospace, monospace;
+  font-size: 0.9rem;
+}
+</style>
 
 <style scoped>
 .logo.vite:hover {

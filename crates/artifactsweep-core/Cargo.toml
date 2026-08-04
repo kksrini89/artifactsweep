@@ -11,3 +11,4 @@ human_bytes = "0.4.3"
 indicatif = "0.18.6"
 rayon = "1.12.0"
 walkdir = "2.5.0"
+serde = { version = "1", features = ["derive"] }

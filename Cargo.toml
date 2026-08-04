@@ -3,8 +3,6 @@ resolver = "2"
 members = [
     "crates/artifactsweep-core",
     "crates/artifactsweep-cli",
-]
-exclude =[
     "apps/desktop/src-tauri",
 ]
 
