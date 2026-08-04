@@ -4,6 +4,9 @@ members = [
     "crates/artifactsweep-core",
     "crates/artifactsweep-cli",
 ]
+exclude =[
+    "apps/desktop/src-tauri",
+]
 
 [workspace.package]
 version = "0.2.2"
