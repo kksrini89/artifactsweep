@@ -3,9 +3,6 @@ import { computed, ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 
-const greetMsg = ref("");
-const name = ref("");
-
 type JunkEntry = {
   path: string;
   size_bytes: number;
@@ -15,6 +12,7 @@ const rootPath = ref<string | null>(null);
 const entries = ref<JunkEntry[]>([]);
 const busy = ref(false);
 const error = ref<string | null>(null);
+const selectedPaths = ref<string[]>([]);
 
 const totalBytes = computed(() =>
   entries.value.reduce((sum, e) => sum + e.size_bytes, 0),
@@ -29,11 +27,6 @@ function formatSize(bytes: number): string {
     i++;
   }
   return `${n.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
-}
-
-async function greet() {
-  // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-  greetMsg.value = await invoke("greet", { name: name.value });
 }
 
 async function chooseFolder() {
@@ -70,6 +63,38 @@ async function runScan() {
     busy.value = false;
   }
 }
+
+function onSelectedPath(path: string, checked: boolean) {
+  if(checked) {
+    if(!selectedPaths.value.includes(path)) {
+      selectedPaths.value = [...selectedPaths.value, path];
+    }
+  } else {
+    selectedPaths.value = selectedPaths.value.filter((p) => p !== path);
+  }
+}
+
+async function runClean() {
+  console.log(`Clean action is performed...`);
+  busy.value = true;
+  error.value = null;
+  try {
+    await invoke('clean', {
+      paths: selectedPaths.value,
+      dryRun: false,
+    });
+    // list refresh after cleaned the selected paths,
+    selectedPaths.value = [];
+    entries.value = [];
+    entries.value = await invoke<JunkEntry[]>('scan', {
+      path: rootPath.value,
+    });
+  } catch (err) {
+    error.value = String(err);
+  } finally {
+    busy.value = false;
+  }
+}
 </script>
 
 <template>
@@ -97,20 +122,33 @@ async function runScan() {
     </p>
     <p v-else-if="rootPath && !busy && !error">No results yet — click Scan.</p>
 
-    <table v-if="entries.length">
-      <thead>
-        <tr>
-          <th>Size</th>
-          <th>Path</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(e, i) in entries" :key="i">
-          <td class="size">{{ formatSize(e.size_bytes) }}</td>
-          <td class="path-cell">{{ e.path }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="column" v-if="entries.length">
+      <button type="button" @click="runClean"
+        :disabled="selectedPaths.length === 0">Clean</button>
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>Size</th>
+            <th>Path</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="(e, i) in entries" :key="i">
+            <td>
+              <input 
+              type="checkbox"
+              :checked="selectedPaths.includes(e.path)"
+              :disabled="busy"
+              @change="onSelectedPath(e.path, ($event.target as HTMLInputElement).checked)"
+              >
+            </td>
+            <td class="size">{{ formatSize(e.size_bytes) }}</td>
+            <td class="path-cell">{{ e.path }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </main>
 </template>
 
@@ -123,6 +161,13 @@ async function runScan() {
 }
 .row {
   display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   margin: 1rem 0;
 }
