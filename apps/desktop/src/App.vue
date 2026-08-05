@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open, confirm } from "@tauri-apps/plugin-dialog";
 
 type JunkEntry = {
   path: string;
@@ -81,8 +81,24 @@ function onSelectedPath(path: string, checked: boolean) {
 
 async function runClean() {
   console.log(`Clean action is performed...`);
-  busy.value = true;
   error.value = null;
+  status.value = null;
+
+  if(selectedPaths.value.length === 0) {
+    return;
+  }
+
+  const ok = await confirm(`Delete ${selectedPaths.value.length} selected folder(s)? This cannot be undone.`, {
+    title: 'Artifact Sweep',
+    kind: "warning"
+  });
+
+  if(!ok) {
+    return;
+  }
+
+  busy.value = true;
+
   try {
     const cleanedCount = await invoke<number>('clean', {
       paths: selectedPaths.value,
