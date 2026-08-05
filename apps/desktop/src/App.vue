@@ -13,6 +13,7 @@ const entries = ref<JunkEntry[]>([]);
 const busy = ref(false);
 const error = ref<string | null>(null);
 const selectedPaths = ref<string[]>([]);
+const status = ref<string | null>(null);
 
 const totalBytes = computed(() =>
   entries.value.reduce((sum, e) => sum + e.size_bytes, 0),
@@ -31,6 +32,7 @@ function formatSize(bytes: number): string {
 
 async function chooseFolder() {
   error.value = null;
+  status.value = null;
   const selected = await open({
     directory: true,
     multiple: false
@@ -42,6 +44,7 @@ async function chooseFolder() {
 
   rootPath.value = selected as string;
   entries.value = [];
+  selectedPaths.value = [];
 
 }
 
@@ -52,10 +55,12 @@ async function runScan() {
   }
   busy.value = true;
   error.value = null;
+  status.value = null;
   try {
     entries.value = await invoke<JunkEntry[]>("scan", {
       path: rootPath.value,
     });
+    status.value = null;
   } catch (e) {
     error.value = String(e);
     entries.value = [];
@@ -79,16 +84,20 @@ async function runClean() {
   busy.value = true;
   error.value = null;
   try {
-    await invoke('clean', {
+    const cleanedCount = await invoke<number>('clean', {
       paths: selectedPaths.value,
       dryRun: false,
     });
     // list refresh after cleaned the selected paths,
     selectedPaths.value = [];
-    entries.value = [];
-    entries.value = await invoke<JunkEntry[]>('scan', {
-      path: rootPath.value,
-    });
+    status.value = `Removed ${cleanedCount} folder(s).`;
+    if(rootPath.value) {
+      entries.value = await invoke<JunkEntry[]>('scan', {
+        path: rootPath.value,
+      });
+    } else {
+      entries.value = [];
+    }
   } catch (err) {
     error.value = String(err);
   } finally {
@@ -116,6 +125,7 @@ async function runClean() {
 
     <p class="path" v-if="rootPath">Folder: {{ rootPath }}</p>
     <p class="error" v-if="error">{{ error }}</p>
+    <p class="status" v-if="status">{{ status }}</p>
 
     <p v-if="entries.length">
       Found {{ entries.length }} folder(s). Total: {{ formatSize(totalBytes) }}
@@ -123,8 +133,12 @@ async function runClean() {
     <p v-else-if="rootPath && !busy && !error">No results yet — click Scan.</p>
 
     <div class="column" v-if="entries.length">
-      <button type="button" @click="runClean"
-        :disabled="selectedPaths.length === 0">Clean</button>
+      <button 
+        type="button" 
+        @click="runClean"
+        :disabled="busy || selectedPaths.length === 0">
+        {{ busy ? "Working..." : "Clean" }}
+      </button>
       <table>
         <thead>
           <tr>
@@ -205,6 +219,10 @@ td {
   word-break: break-all;
   font-family: ui-monospace, monospace;
   font-size: 0.9rem;
+}
+
+.status {
+  color: #0a7a32;
 }
 </style>
 
