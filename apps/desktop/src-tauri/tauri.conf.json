@@ -13,11 +13,11 @@
     "windows": [
       {
         "title": "ArtifactSweep",
-        "width": 1000,
-        "height": 700,
+        "width": 1100,
+        "height": 720,
         "resizable": true,
-        "minWidth": 800,
-        "minHeight": 560
+        "minWidth": 960,
+        "minHeight": 640
       }
     ],
     "security": {
