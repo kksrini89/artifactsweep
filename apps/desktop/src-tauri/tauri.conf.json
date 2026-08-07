@@ -26,7 +26,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis"],
+    "externalBin": [
+      "binaries/sweep"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -35,6 +38,11 @@
       "icons/icon.ico"
     ],
     "shortDescription": "Scan and clean developer build artifacts",
-    "longDescription": "ArtifactSweep finds regeneratable folders such as node_modules and target, shows sizes, and lets you clean selected paths. Includes the sweep CLI on PATH when installed via the desktop installer."
+    "longDescription": "ArtifactSweep finds regeneratable folders such as node_modules and target, shows sizes, and lets you clean selected paths. Includes the sweep CLI on PATH when installed via the desktop installer.",
+    "windows": {
+      "nsis": {
+        "installerHooks": "./windows/hooks.nsh"
+      }
+    }
   }
 }
