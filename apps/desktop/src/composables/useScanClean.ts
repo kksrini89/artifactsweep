@@ -42,6 +42,7 @@ export function useScanClean() {
   const showConfirm = ref(false);
   const toast = ref<ToastMessage | null>(null);
   const error = ref<string | null>(null);
+  const lastScannedPath = ref("");
 
   let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -74,6 +75,13 @@ export function useScanClean() {
     return "Working…";
   });
 
+  const canClean = computed(() => {
+    const root = path.value.trim();
+    return (
+      !busy.value && root.length > 0 && root === lastScannedPath.value && filteredEntries.value.length > 0
+    );
+  });
+
   function showToast(type: ToastMessage["type"], title: string, body: string) {
     toast.value = { type, title, body };
     if (toastTimer) clearTimeout(toastTimer);
@@ -103,10 +111,21 @@ export function useScanClean() {
       multiple: false,
     });
     if (selected == null) return;
-    path.value = selected as string;
+    setPath(selected as string);
     saveLastPath(path.value);
+  }
+
+  function setPath(next: string) {
+    const normalized = next;
+    if (normalized === path.value) {
+      return;
+    }
+    path.value = normalized;
     entries.value = [];
     filterKind.value = "all";
+    showConfirm.value = false;
+    error.value = null;
+    lastScannedPath.value = '';
   }
 
   async function scan() {
@@ -126,6 +145,7 @@ export function useScanClean() {
       saveLastPath(root);
       const result = await invoke<JunkEntryDto[]>("scan", { path: root });
       entries.value = mapEntries(result);
+      lastScannedPath.value = root;
       filterKind.value = "all";
       showToast(
         "ok",
@@ -134,6 +154,7 @@ export function useScanClean() {
       );
     } catch (e) {
       entries.value = [];
+      lastScannedPath.value = '';
       error.value = String(e);
       showToast("err", "Scan failed", String(e));
     } finally {
@@ -143,7 +164,7 @@ export function useScanClean() {
   }
 
   function openConfirm() {
-    if (!filteredEntries.value.length || busy.value) return;
+    if(!canClean.value) return;
     showConfirm.value = true;
   }
 
@@ -153,6 +174,10 @@ export function useScanClean() {
 
   /** Live clean currently filtered list after modal confirm. */
   async function confirmClean() {
+    if(!canClean.value) {
+      showConfirm.value = false;
+      return;
+    }
     const targets = filteredEntries.value;
     if (!targets.length) {
       showConfirm.value = false;
@@ -220,9 +245,11 @@ export function useScanClean() {
     showToast,
     dismissToast,
     chooseFolder,
+    setPath,
     scan,
     openConfirm,
     closeConfirm,
     confirmClean,
+    canClean,
   };
 }

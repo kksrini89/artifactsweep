@@ -29,10 +29,12 @@ const {
   sharePercent,
   dismissToast,
   chooseFolder,
+  setPath,
   scan,
   openConfirm,
   closeConfirm,
   confirmClean,
+  canClean,
 } = useScanClean();
 </script>
 
@@ -72,7 +74,7 @@ const {
             :path="path"
             :busy="busy"
             :scanning="phase === 'scan'"
-            @update:path="path = $event"
+            @update:path="setPath"
             @browse="chooseFolder"
             @scan="scan"
           />
@@ -97,7 +99,7 @@ const {
           <ResultsTable
             :entries="filteredEntries"
             :has-any-results="entries.length > 0"
-            :busy="busy"
+            :can-clean="canClean"
             :format-bytes="formatBytes"
             :share-percent="sharePercent"
             @clean="openConfirm"

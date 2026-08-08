@@ -5,7 +5,7 @@ import { isHighRiskKind } from "../utils/kind";
 defineProps<{
   entries: JunkEntry[];
   hasAnyResults: boolean;
-  busy: boolean;
+  canClean: boolean;
   formatBytes: (n: number) => string;
   sharePercent: (sizeBytes: number) => number;
 }>();
@@ -28,7 +28,7 @@ const emit = defineEmits<{
         <button
           type="button"
           class="btn btn-danger btn-sm"
-          :disabled="busy"
+          :disabled="!canClean"
           @click="emit('clean')"
         >
           Clean
