@@ -8,7 +8,7 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn scan(path: String) -> Result<Vec<JunkEntry>, String> {
+async fn scan(path: String) -> Result<Vec<JunkEntry>, String> {
     let folder = PathBuf::from(&path);
 
     if !folder.exists() {
@@ -19,21 +19,30 @@ fn scan(path: String) -> Result<Vec<JunkEntry>, String> {
         return Err(format!("not a directory: {path}"));
     }
 
-    let found = find_junk_paths(&folder);
-    let entries = size_entries(&found);
+    let entries = tauri::async_runtime::spawn_blocking(move || {
+        let found = find_junk_paths(&folder);
+        size_entries(&found)
+    })
+    .await
+    .map_err(|e| format!("scan task failed: {e}"))?; 
 
     Ok(entries)
 }
 
 #[tauri::command]
-fn clean(paths: Vec<String>, dry_run: bool) -> Result<usize, String> {
+async fn clean(paths: Vec<String>, dry_run: bool) -> Result<usize, String> {
     if paths.is_empty() {
         return Err("no paths selected".to_string());
     }
 
-    let path_buf_list = paths.into_iter().map(|entry| PathBuf::from(entry)).collect::<Vec<PathBuf>>();
+    let done = tauri::async_runtime::spawn_blocking(move || {
+        let path_buf_list = paths.into_iter().map(|entry| PathBuf::from(entry)).collect::<Vec<PathBuf>>();
+    
+        delete_paths(&path_buf_list, dry_run)
+    })
+    .await
+    .map_err(|e| format!("clean task failed: {e}"))?;
 
-    let done = delete_paths(&path_buf_list, dry_run);
     Ok(done)
 }
 
