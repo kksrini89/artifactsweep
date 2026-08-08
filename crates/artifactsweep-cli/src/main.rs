@@ -1,9 +1,11 @@
 mod cli;
-mod junk;
 
 use clap::Parser;
 use cli::{Cli, Commands};
-use junk::{find_junk_paths, size_entries, print_junk_report, delete_junk};
+use artifactsweep_core::{
+    delete_junk, find_junk_paths, 
+    print_junk_report, size_entries,
+};
 
 fn main() {
     let cli = Cli::parse();
