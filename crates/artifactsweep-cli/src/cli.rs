@@ -3,9 +3,9 @@ use std::path::{PathBuf};
 
 #[derive(Parser, Debug)]
 #[command(
-    name = "dev-clean",
+    name = "sweep",
     version,
-    about = "Scan or Delete Developer Junk Folders"
+    about = "Scan or Clean developer generated artifact folders"
 )]
 pub struct Cli {
     #[command(subcommand)]
