@@ -1,12 +1,13 @@
+# CLI smoke build on main / manual dispatch (original)
+
 name: build
 
 on:
   push:
     branches:
       - main
-  workflow_dispatch:   # Run workflow button on GitHub
+  workflow_dispatch:
 
-# Don't cancel other OS jobs if one fails (optional; helps see all results)
 jobs:
   build:
     name: build (${{ matrix.os }})
@@ -36,10 +37,16 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Build release
-        run: cargo build --release
+        run: cargo build -p artifactsweep-cli --release
 
       - name: Smoke test --help
-        run: ${{ matrix.binary_path }} --help
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            ./target/release/sweep.exe --help
+          else
+            ./target/release/sweep --help
+          fi
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4

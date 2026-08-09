@@ -4,10 +4,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use walkdir::WalkDir;
 use indicatif::{ProgressBar, ProgressStyle};
+use serde::Serialize;
 
+#[derive(Debug, Clone, Serialize)]
 pub struct JunkEntry {
-    path: PathBuf,
-    size_bytes: u64,
+    pub path: PathBuf,
+    pub size_bytes: u64,
 }
 
 const ARTIFACT_FOLDER_NAMES: &[&str] = &[
@@ -154,44 +156,46 @@ pub fn print_junk_report(paths: &[JunkEntry]) {
     );
 }
 
-pub fn delete_junk(paths: &[JunkEntry], dry_run: bool) {
+pub fn delete_junk(paths: &[JunkEntry], dry_run: bool) ->usize {
+    let paths: Vec<PathBuf> = paths
+                    .iter()
+                    .map(|entry| entry.path.clone())
+                    .collect();
+    delete_paths(&paths, dry_run)
+}
+
+pub fn delete_paths(paths: &[PathBuf], dry_run: bool) -> usize {
     if paths.is_empty() {
         println!("Nothing to clean.");
-        return;
+        return 0;
     }
 
     let mut ok: usize = 0;
 
-    for entry in paths {
+    for path in paths {
         if dry_run {
-            // println!(
-            //     " [dry-run] would remove {:>10}  {}",
-            //     human_bytes(entry.size_bytes as f64),
-            //     entry.path.display()
-            // );
+            println!(" [dry-run] would remove {}", path.display());
             ok += 1;
             continue;
         }
 
-        match fs::remove_dir_all(&entry.path) {
+        match fs::remove_dir_all(path) {
             Ok(()) => {
-                println!(
-                    " removed {:>10}  {}",
-                    human_bytes(entry.size_bytes as f64),
-                    entry.path.display()
-                );
+                println!(" removed {}", path.display());
                 ok += 1;
             }
             Err(err) => {
-                eprintln!(" FAILED {}: {err}", entry.path.display());
+                eprintln!(" FAILED {}: {err}", path.display());
             }
         }
     }
 
     if dry_run {
         println!("Dry-run complete: {ok} folder(s) would be removed.");
-        println!("Re-run without --dry-run to actually delete.");
+        println!("Re-run without --dry-run to actually delete");
     } else {
         println!("Done: removed {ok} of {} folder(s).", paths.len());
     }
+
+    ok
 }

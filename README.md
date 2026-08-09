@@ -1,181 +1,93 @@
-# 🧹artifactsweep
+# 🧹ArtifactSweep
 
-- **Artifact Sweep** is a cross-platform Rust-based disk cleanup utility that safely removes generated development artifacts to reclaim storage space.
+**Artifact Sweep** is a cross-platform Rust-based disk cleanup utility that safely removes generated development artifacts to reclaim storage space.
 
-- Generally, the artifcats are (`node_modules`, `target`, `dist`, and more) under a path you choose.
+Use it in two ways:
+
+- **Desktop app** — pick a folder, scan, select what to delete, clean  
+- **CLI (`sweep`)** — same idea from the terminal  
+
+---
 
 ## Install
 
-### Option A - Prebuilt binary (no Rust required)
+Download the build for your system from  
+**[Releases](https://github.com/kksrini89/artifactsweep/releases)**.
 
-1. Open [Releases](https://github.com/kksrini89/artifactsweep/releases)
-2. Download the asset for your OS:
+| Your system | What to download |
+|-------------|------------------|
+| Windows (64-bit) | `ArtifactSweep_*_x64-setup.exe` |
+| Linux (Debian/Ubuntu 64-bit) | `ArtifactSweep_*_amd64.deb` |
+| Mac (Apple Silicon) | `ArtifactSweep_*_aarch64.dmg` |
 
-| OS | Asset (example) |
-|----|------------------|
-| Windows x64 | `sweep-windows-x86_64.exe` |
-| Linux x64 | `sweep-linux-x86_64` |
-| macOS | `sweep-macos` |
+Optional: standalone `sweep-*` files if you only want the command line.
 
-3. (Linux/macOS) Make it executable and move it onto your `PATH` if you like:
+### After install
 
-   ```bash
-   chmod +x sweep-linux-x86_64   # or sweep-macos
-   sudo mv sweep-linux-x86_64 /usr/local/bin/sweep
-
-4. On Windows, rename to sweep.exe if you want, then place it in a folder that is on your PATH, or run it by full path.
-
-5. Check:
-
-```sweep --help```
-
-
-### Pre-requisite for Option B & C
-
-- Rust / Cargo ([rustup](https://rustup.rs))
-
-### Option B — From source (Rust / Cargo)
-
-```bash
-git clone https://github.com/kksrini89/artifactsweep.git
-cd dev-clean
-cargo install --path .
-dev-clean --help
-```
-
-### Option C — Build only
-
-```bash
-cargo build --release
-# Windows: target/release/sweep.exe
-# Linux/macOS: target/release/sweep
-```
-
-## Build & run
-
-From the project directory:
-
-```bash
-cargo build
-cargo run -- scan <PATH>
-cargo run -- clean <PATH> --dry-run
-cargo run -- clean <PATH>
-```
-
-Release binary:
-
-```bash
-cargo build --release
-./target/release/sweep scan <PATH>    # Git Bash / Unix-style
-```
-
-Optional install (puts dev-clean on your PATH):
-
-```bash
-cargo install --path .
-sweep scan <PATH>
-```
-
-## Commands
-
-#### scan
-
-List artifact folders under PATH (read-only).
-
-```bash
-sweep scan .
-sweep scan /d/projects/opensource
-```
-
-#### clean
-
-Delete the same artifact folders scan would find.
-
-Preview first (recommended):
-
-```bash
-sweep clean <PATH> --dry-run
-```
-
-Delete for real:
-```bash
-sweep clean <PATH>
-```
-
-#### Paths in Git Bash
-
-Prefer forward-slash or Git Bash paths so \ is not eaten by the shell:
-
-```bash
-sweep scan /d/Personal/projects/my-app
-sweep scan D:/Personal/projects/my-app
-sweep scan 'D:\Personal\projects\my-app'   # quoted backslashes OK
-```
-
-#### Help
+1. Open a **new** terminal (important on Windows so PATH updates).  
+2. Check the CLI:
 
 ```bash
 sweep --help
-sweep scan --help
-sweep clean --help
 ```
 
-#### What counts as junk?
+3. Open **ArtifactSweep** from the Start Menu (Windows), app menu (Linux), or Applications (Mac).
 
-Folders are matched by directory name only (anywhere under `PATH`). When a match is found, the tool does not walk inside it for further artifact names.
+**Mac tip:** if macOS blocks the app, right-click → **Open**, or allow it in System Settings → Privacy & Security.
 
-Defined in [`src/junk.rs`](see `src/junk.rs`):
+**Windows tip:** if both an old and new `sweep` exist, prefer the one under `AppData\Local\ArtifactSweep`, or remove an old Cargo install.
 
-### JavaScript / TypeScript
+---
 
-- `node_modules`
-- `dist`
-- `build`
-- `.angular`
-- `.next`
-- `.nuxt`
-- `.turbo`
-- `.cache`
-- `.parcel-cache`
-- `.svelte-kit`
-- `.vite`
+## Desktop app (quick start)
 
-### Rust
+1. **Choose folder** — project or drive area to scan  
+2. **Scan** — lists junk folders and sizes  
+3. Check the rows you want to remove  
+4. **Clean** — confirm, then delete only the selected folders  
+5. The list refreshes when done  
 
-- `target`
+Always review the list before cleaning. Some names (like `bin` or `build`) can appear in real projects.
 
-### Python
+---
 
-- `__pycache__`
+## CLI (quick start)
 
-### Java / Kotlin
+```bash
+# List junk under a path (safe — does not delete)
+sweep scan .
 
-- `.gradle`
+# Preview deletes
+sweep clean . --dry-run
 
-### C# / .NET
+# Delete junk under that path
+sweep clean .
+```
 
-- `bin`
-- `obj`
+On Windows Git Bash, prefer paths like `/d/Projects/my-app` or `D:/Projects/my-app`.
 
-### Flutter / Dart
+---
 
-- `.dart_tool`
+## What gets detected?
 
-### Generic
+Folders matched by **name**, for example:
 
-- `coverage`
-- `out`
-- `tmp`
-- `temp`
+- JS/TS: `node_modules`, `dist`, `.next`, `.angular`, …  
+- Rust: `target`  
+- Python: `__pycache__`  
+- And other common caches (see the app/CLI after a scan)
 
-> ***Warning***: Names like bin, obj, tmp, temp, out, and build appear in many stacks. 
-> Always run scan or clean --dry-run before a live clean on a large or unfamiliar tree. Parent project folders are kept; only matching directories are removed.
+The tool does not walk *inside* a matched folder for more junk names.
 
+---
 
-### Notes
+## Requirements
 
-- Sizing uses parallel workers with `rayon` crate + progress bar with `indicatif` crate
-- Prebuilt macOS builds come from GitHub’s macos-latest runner (often Apple Silicon). If a binary does not run on your Mac, build from source with Option B.
+- **Desktop:** normal OS support (Windows 10/11, recent Ubuntu-style Linux, recent macOS on Apple Silicon).  
+- **Windows desktop:** WebView2 (usually already installed).  
+- **CLI-only:** just the `sweep` binary for your OS — no Node/Rust needed to *use* it.
+
+---
 
 ## Screenshots
 
@@ -184,6 +96,8 @@ On one of my project folders alone, it reclaimed nearly 5 GB of storage.
 ![Tried clean with dry-run](screenshots/clean-with-dry-run.png "Clean with dry-run")
 
 ![Tried real clean](screenshots/real-clean.png "Real clean")
+
+---
 
 ## License
 

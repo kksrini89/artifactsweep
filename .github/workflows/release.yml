@@ -1,12 +1,14 @@
+# CLI-only release on version tags (original style)
+
 name: release
 
 on:
   push:
     tags:
-      - 'v*'   # v0.1.0, v1.0.0-rc1, etc.
+      - "v*"
 
 permissions:
-  contents: write   # needed to create/upload a GitHub Release
+  contents: write
 
 jobs:
   build-and-release:
@@ -37,12 +39,17 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Build release
-        run: cargo build --release
+        run: cargo build -p artifactsweep-cli --release
 
       - name: Smoke test --help
-        run: ${{ matrix.binary_path }} --help
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            ./target/release/sweep.exe --help
+          else
+            ./target/release/sweep --help
+          fi
 
-      # Give the uploaded file a clear, OS-specific name
       - name: Stage asset (Unix)
         if: runner.os != 'Windows'
         run: cp "${{ matrix.binary_path }}" "${{ matrix.asset_name }}"
