@@ -4,7 +4,8 @@ import { isHighRiskKind } from "../utils/kind";
 
 defineProps<{
   entries: JunkEntry[];
-  hasAnyResults: boolean;
+  hasScanned: boolean;
+  hasRawResults: boolean;
   canClean: boolean;
   formatBytes: (n: number) => string;
   sharePercent: (sizeBytes: number) => number;
@@ -36,10 +37,15 @@ const emit = defineEmits<{
       </div>
     </div>
 
-    <div v-if="!hasAnyResults" class="as-empty">
+    <div v-if="!hasScanned" class="as-empty">
       <strong>Nothing scanned yet</strong>
       Choose a project root and hit Scan folder. Results will appear with sizes
       and categories.
+    </div>
+
+    <div v-else-if="!hasRawResults" class="as-empty">
+      <strong>No artifact folders found</strong>
+      This folder looks clean - nothing matched the artifact list.
     </div>
 
     <div

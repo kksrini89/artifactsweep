@@ -75,6 +75,11 @@ export function useScanClean() {
     return "Working…";
   });
 
+  const hasScanned = computed(() => {
+    const root = path.value.trim();
+    return root.length > 0 && root === lastScannedPath.value;
+  });
+
   const canClean = computed(() => {
     const root = path.value.trim();
     return (
@@ -251,5 +256,6 @@ export function useScanClean() {
     closeConfirm,
     confirmClean,
     canClean,
+    hasScanned,
   };
 }

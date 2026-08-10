@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import packageJson from "../../package.json";
 import { useScanClean } from "../composables/useScanClean";
 import AppSidebar from "../components/AppSidebar.vue";
 import MetricCards from "../components/MetricCards.vue";
@@ -35,12 +36,16 @@ const {
   closeConfirm,
   confirmClean,
   canClean,
+  hasScanned,
 } = useScanClean();
+
+const appVersion = packageJson.version;
+
 </script>
 
 <template>
   <div class="as-app d-flex overflow-hidden">
-    <AppSidebar version="0.2.2" />
+    <AppSidebar :version="appVersion" />
 
     <main class="as-main flex-grow-1 d-flex flex-column overflow-hidden">
       <header
@@ -98,7 +103,8 @@ const {
 
           <ResultsTable
             :entries="filteredEntries"
-            :has-any-results="entries.length > 0"
+            :has-scanned="hasScanned"
+            :has-raw-results="entries.length > 0"
             :can-clean="canClean"
             :format-bytes="formatBytes"
             :share-percent="sharePercent"
