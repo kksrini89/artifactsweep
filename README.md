@@ -93,6 +93,10 @@ The tool does not walk *inside* a matched folder for more junk names.
 
 On one of my project folders alone, it reclaimed nearly 5 GB of storage.
 
+![After Scanned with all](screenshots/Without-Filter.png "Scanned with all artifacts type")
+
+![After Scanned with selected filter](screenshots/With-Filter.png "Scanned with selected artifacts type")
+
 ![Tried clean with dry-run](screenshots/clean-with-dry-run.png "Clean with dry-run")
 
 ![Tried real clean](screenshots/real-clean.png "Real clean")
@@ -102,3 +106,11 @@ On one of my project folders alone, it reclaimed nearly 5 GB of storage.
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Support
+
+If this tool saved you some disk space (or time), you can support the my work here:
+
+<a href="https://www.buymeacoffee.com/SrinivasanKK">
+  <img src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&emoji=%E2%98%95&slug=SrinivasanKK&button_colour=FFDD00&font_colour=000000&font_family=Comic&outline_colour=000000&coffee_colour=ffffff" alt="Buy me a coffee" />
+</a>
