@@ -36,6 +36,7 @@ const {
   closeConfirm,
   confirmClean,
   canClean,
+  hasScanned,
 } = useScanClean();
 
 const appVersion = packageJson.version;
@@ -102,7 +103,8 @@ const appVersion = packageJson.version;
 
           <ResultsTable
             :entries="filteredEntries"
-            :has-any-results="entries.length > 0"
+            :has-scanned="hasScanned"
+            :has-raw-results="entries.length > 0"
             :can-clean="canClean"
             :format-bytes="formatBytes"
             :share-percent="sharePercent"
