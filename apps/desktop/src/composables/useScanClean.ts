@@ -214,11 +214,17 @@ export function useScanClean() {
       }
       filterKind.value = "all";
 
-      showToast(
-        "ok",
-        "Cleaned",
-        `Removed ${cleanedCount} of ${n} folders · ${formatBytes(reclaimed)} reclaimed`,
-      );
+      if (cleanedCount === n) {
+        showToast(
+          "ok",
+          "Cleaned",
+          `Removed ${cleanedCount} of ${n} folders · ${formatBytes(reclaimed)} reclaimed`,
+        );
+      } else if (cleanedCount === 0) {
+        showToast("err", "Clean failed", `Removed 0 of ${n} folders. Nothing was deleted (check permissions or locks).`);
+      } else {
+        showToast("warn", "Partially cleaned", `Removed ${cleanedCount} of ${n} folders. Some paths failed - reclaimed size not estimated. List refreshed.`);
+      }
     } catch (e) {
       error.value = String(e);
       showToast("err", "Clean failed", String(e));

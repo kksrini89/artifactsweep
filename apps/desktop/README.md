@@ -1,7 +1,15 @@
-# Tauri + Vue + TypeScript
+# 🧹ArtifactSweep
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+**Artifact Sweep** is a cross-platform disk cleanup utility that safely removes generated development artifacts to reclaim storage space.
 
-## Recommended IDE Setup
+---
 
-- [VS Code](https://code.visualstudio.com/) + [Vue - Official](https://marketplace.visualstudio.com/items?itemName=Vue.volar) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Desktop app (quick start)
+
+1. **Choose folder** — project or drive area to scan  
+2. **Scan** — lists junk folders and sizes  
+3. Check the rows you want to remove  
+4. **Clean** — confirm, then delete only the selected folders  
+5. The list refreshes when done  
+
+Always review the list before cleaning. Some names (like `bin` or `build`) can appear in real projects.
