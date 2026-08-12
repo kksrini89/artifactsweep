@@ -1,6 +1,6 @@
 [package]
 name = "artifactsweep-core"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024"
 rust-version = "1.97"
 description = "Shared scan/size/delete logic for ArtifactSweep"
