@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ArtifactSweep — free disk space from build junk</title>
+  <meta
+    name="description"
+    content="Scan and remove node_modules, target, dist and more. Desktop app + sweep CLI. Free and open source."
+  />
+  <meta name="theme-color" content="#0b0f14" />
+  <link rel="canonical" href="https://kksrini89.github.io/artifactsweep/" />
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --surface: #121820;
+      --border: #243041;
+      --text: #f3f6fa;
+      --muted: #9aa8b8;
+      --brand: #22c55e;
+      --brand-dim: #16a34a;
+      --accent: #38bdf8;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(10px);
+      background: rgba(11, 15, 20, 0.88);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner,
+    .section,
+    .hero-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+      gap: 0.75rem;
+    }
+    .logo {
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      text-decoration: none;
+    }
+    .logo:hover { text-decoration: none; }
+    .nav-links {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .nav-link {
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .nav-link:hover { color: var(--text); text-decoration: none; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.7rem 1.15rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none !important;
+    }
+    .btn-primary {
+      background: var(--brand);
+      color: #052e16;
+    }
+    .btn-primary:hover {
+      background: var(--brand-dim);
+      color: #fff;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text);
+      border-color: var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--muted); }
+    .btn-lg {
+      padding: 0.85rem 1.4rem;
+      font-size: 1rem;
+    }
+
+    .bmc-wrap {
+      display: inline-block;
+      line-height: 0;
+      border-radius: 8px;
+    }
+    .bmc-wrap img {
+      display: block;
+      height: 40px;
+      width: auto;
+      border-radius: 8px;
+    }
+    .bmc-wrap-lg img { height: 48px; }
+    .bmc-wrap:hover {
+      text-decoration: none;
+      animation: coffee-shake 0.5s ease;
+    }
+    @keyframes coffee-shake {
+      0%, 100% { transform: rotate(0deg); }
+      15% { transform: rotate(-6deg) scale(1.03); }
+      30% { transform: rotate(6deg) scale(1.03); }
+      45% { transform: rotate(-4deg); }
+      60% { transform: rotate(4deg); }
+      75% { transform: rotate(-2deg); }
+    }
+
+    .hero {
+      padding: 3.5rem 0 2.5rem;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(34, 197, 94, 0.18), transparent),
+        var(--bg);
+    }
+    .hero-inner { text-align: center; }
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--brand);
+      margin-bottom: 0.75rem;
+    }
+    h1 {
+      font-size: clamp(1.85rem, 4vw, 2.75rem);
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin: 0 auto 0.85rem;
+      max-width: 18ch;
+      font-weight: 750;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 1.1rem;
+      max-width: 36rem;
+      margin: 0 auto 1.5rem;
+    }
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    .micro {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin: 0 0 2rem;
+    }
+    .hero-shot {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      background: var(--surface);
+    }
+    .hero-shot img {
+      width: 100%;
+      display: block;
+      height: auto;
+    }
+
+    .section { padding: 3.25rem 1.25rem; }
+    .section h2 {
+      font-size: 1.5rem;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.5rem;
+      text-align: center;
+    }
+    .section .intro {
+      text-align: center;
+      color: var(--muted);
+      max-width: 32rem;
+      margin: 0 auto 2rem;
+    }
+
+    .pain-grid {
+      display: grid;
+      gap: 0.85rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 720px) {
+      .pain-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.15rem 1.2rem;
+    }
+    .card h3 { margin: 0 0 0.4rem; font-size: 1rem; }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .steps {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr;
+      counter-reset: step;
+    }
+    @media (min-width: 720px) {
+      .steps { grid-template-columns: repeat(3, 1fr); }
+    }
+    .step {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .step::before {
+      counter-increment: step;
+      content: counter(step);
+      display: inline-flex;
+      width: 1.75rem;
+      height: 1.75rem;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--brand);
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: 0.65rem;
+    }
+    .step h3 { margin: 0 0 0.35rem; font-size: 1.05rem; }
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .gallery {
+      display: grid;
+      gap: 1rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 800px) {
+      .gallery { grid-template-columns: 1.2fr 0.8fr; }
+    }
+    figure {
+      margin: 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    figure img {
+      width: 100%;
+      display: block;
+      height: auto;
+    }
+    figure figcaption {
+      padding: 0.55rem 0.85rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+
+    .trust {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+      justify-content: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .trust span {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .trust b {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .cta-band {
+      background: linear-gradient(180deg, rgba(34, 197, 94, 0.08), transparent);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      text-align: center;
+      padding: 2.75rem 1.25rem;
+    }
+    .cta-band h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1.45rem;
+    }
+    .cta-band p {
+      color: var(--muted);
+      margin: 0 0 1.15rem;
+    }
+
+    .faq details {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.5rem;
+    }
+    .faq summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .faq p {
+      margin: 0.6rem 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    footer {
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 3rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.88em;
+      color: #86efac;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sticky nav: logo + GitHub + one Download (primary CTA, always visible) -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a class="logo" href="#">ArtifactSweep</a>
+      <div class="nav-links">
+        <a class="nav-link" href="https://github.com/kksrini89/artifactsweep">GitHub</a>
+        <a class="btn btn-primary" href="https://github.com/kksrini89/artifactsweep/releases">
+          Download free
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">Open source · Desktop + CLI</div>
+      <h1>Reclaim gigabytes of disk space in minutes</h1>
+      <p class="sub">
+        ArtifactSweep finds regeneratable junk —
+        <code>node_modules</code>, <code>target</code>, <code>dist</code>, and more —
+        shows sizes, then lets you delete with confidence. No signup. No cloud.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-primary btn-lg" href="https://github.com/kksrini89/artifactsweep/releases">
+          Download for free
+        </a>
+        <a class="btn btn-ghost btn-lg" href="#how">See how it works</a>
+      </div>
+      <p class="micro">Windows · Linux · macOS (Apple Silicon) · MIT licensed</p>
+      <div class="hero-shot">
+        <img
+          src="screenshots/Without-Filter.png"
+          alt="ArtifactSweep desktop scanning project artifacts"
+          width="1200"
+          height="700"
+        />
+      </div>
+    </div>
+  </header>
+
+  <!-- PAIN -->
+  <section class="section">
+    <h2>Your SSD is full of stuff you can rebuild anytime</h2>
+    <p class="intro">
+      Build caches pile up across every clone and experiment.
+      Hunting them by hand is slow and easy to get wrong.
+    </p>
+    <div class="pain-grid">
+      <div class="card">
+        <h3>Hidden bulk</h3>
+        <p>
+          Nested <code>node_modules</code> and Rust <code>target</code> trees
+          quietly eat tens of GB across side projects.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Guesswork deletes</h3>
+        <p>
+          Deleting the wrong folder hurts. You need sizes and a clear list
+          before you remove anything.
+        </p>
+      </div>
+      <div class="card">
+        <h3>Context switching</h3>
+        <p>
+          Sometimes you want a GUI. Sometimes a one-liner in the terminal.
+          You should not need two different tools.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section" id="how" style="padding-top: 0">
+    <h2>Three steps. Then get back to work.</h2>
+    <p class="intro">
+      One main action on this page: install. The product stays simple after that.
+    </p>
+    <div class="steps">
+      <div class="step">
+        <h3>Scan a folder</h3>
+        <p>
+          Point at a projects root. ArtifactSweep walks the tree and lists known junk by name.
+        </p>
+      </div>
+      <div class="step">
+        <h3>Review sizes</h3>
+        <p>
+          See what is safe to regenerate. Filter by type. Dry-run in the CLI if you prefer.
+        </p>
+      </div>
+      <div class="step">
+        <h3>Clean with control</h3>
+        <p>
+          Desktop: confirm, then delete. CLI: <code>sweep clean .</code> when you are sure.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCT PROOF -->
+  <section class="section" style="padding-top: 0">
+    <h2>Built for how developers actually work</h2>
+    <p class="intro">Desktop when you want clarity. CLI when you want speed.</p>
+    <div class="gallery">
+      <figure>
+        <img
+          src="screenshots/With-Filter.png"
+          alt="Desktop app with category filters"
+        />
+        <figcaption>Desktop — filter artifacts, then clean what you choose.</figcaption>
+      </figure>
+      <div>
+        <figure style="margin-bottom: 1rem">
+          <img
+            src="screenshots/clean-with-dry-run.png"
+            alt="CLI dry-run"
+          />
+          <figcaption>CLI — preview with <code>--dry-run</code>.</figcaption>
+        </figure>
+        <figure>
+          <img src="screenshots/real-clean.png" alt="CLI clean" />
+          <figcaption>CLI — clean when you are ready.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST -->
+  <section class="section" style="padding-top: 1rem">
+    <div class="trust">
+      <span><b>Open source</b> MIT</span>
+      <span><b>Local only</b> no account</span>
+      <span><b>Desktop + CLI</b> same job</span>
+      <span><b>Free installers</b> Win · Linux · Mac</span>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <h2>Free your disk. Keep your source.</h2>
+    <p>Install ArtifactSweep — desktop app and <code>sweep</code> CLI for your OS.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary btn-lg" href="https://github.com/kksrini89/artifactsweep/releases">
+        Download free
+      </a>
+      <a
+        class="bmc-wrap bmc-wrap-lg"
+        href="https://www.buymeacoffee.com/SrinivasanKK"
+        target="_blank"
+        rel="noopener"
+        title="Buy me a coffee"
+      >
+        <img
+          src="https://img.buymeacoffee.com/button-api/?text=Buy%20me%20a%20coffee&amp;emoji=%E2%98%95&amp;slug=SrinivasanKK&amp;button_colour=FFDD00&amp;font_colour=000000&amp;font_family=Comic&amp;outline_colour=000000&amp;coffee_colour=ffffff"
+          alt="Buy me a coffee"
+          width="235"
+          height="48"
+        />
+      </a>
+    </div>
+  </section>
+
+  <section class="section faq">
+    <h2>FAQ</h2>
+    <p class="intro">Quick answers before you install.</p>
+    <details>
+      <summary>Is it free?</summary>
+      <p>Yes. MIT open source. Optional support via Buy me a coffee if it helps you.</p>
+    </details>
+    <details>
+      <summary>Will it delete my source code?</summary>
+      <p>
+        It matches known junk <em>folder names</em> (build caches). Always review the list
+        (or use CLI dry-run) before cleaning.
+      </p>
+    </details>
+    <details>
+      <summary>Which platforms?</summary>
+      <p>
+        Windows (setup + CLI on PATH), Linux (<code>.deb</code>), macOS Apple Silicon
+        (<code>.dmg</code>. See Releases for files.
+      </p>
+    </details>
+  </section>
+
+  <footer>
+    <span>© ArtifactSweep · MIT</span>
+    <span>
+      <a href="https://github.com/kksrini89/artifactsweep">GitHub</a>
+      ·
+      <a href="https://github.com/kksrini89/artifactsweep#readme">Docs</a>
+      ·
+      <a href="https://www.buymeacoffee.com/SrinivasanKK">Support</a>
+    </span>
+  </footer>
+</body>
+</html>
