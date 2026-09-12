@@ -19,7 +19,9 @@ const {
   toast,
   error,
   filteredEntries,
-  filteredTotal,
+  selectedPaths,
+  selectedEntries,
+  selectedTotal,
   totalBytes,
   largest,
   categories,
@@ -32,6 +34,8 @@ const {
   chooseFolder,
   setPath,
   scan,
+  togglePath,
+  toggleVisible,
   openConfirm,
   closeConfirm,
   confirmClean,
@@ -67,8 +71,8 @@ const appVersion = packageJson.version;
       <div class="as-main-scroll flex-grow-1 overflow-auto px-4 pb-4">
         <div class="d-flex flex-column gap-3">
           <MetricCards
-            :filtered-total="filteredTotal"
-            :filtered-count="filteredEntries.length"
+            :filtered-total="selectedTotal"
+            :filtered-count="selectedEntries.length"
             :largest="largest"
             :category-count="categoryCount"
             :total-bytes="totalBytes"
@@ -103,34 +107,26 @@ const appVersion = packageJson.version;
 
           <ResultsTable
             :entries="filteredEntries"
+            :selected-paths="selectedPaths"
             :has-scanned="hasScanned"
             :has-raw-results="entries.length > 0"
             :can-clean="canClean"
             :format-bytes="formatBytes"
             :share-percent="sharePercent"
             @clean="openConfirm"
+            @toggle="togglePath"
+            @toggle-visible="toggleVisible"
           />
 
           <p
-            v-if="entries.length && filterKind !== 'all'"
+            v-if="entries.length"
             class="mb-0 small"
             style="color: var(--as-dim)"
           >
-            Clean applies to the
-            <strong style="color: var(--as-text)">{{ filterKind }}</strong>
-            filter only ({{ filteredEntries.length }} folder{{
-              filteredEntries.length === 1 ? "" : "s"
-            }}).
-          </p>
-          <p
-            v-else-if="entries.length"
-            class="mb-0 small"
-            style="color: var(--as-dim)"
-          >
-            Clean applies to all
-            {{ filteredEntries.length }} listed folder{{
-              filteredEntries.length === 1 ? "" : "s"
-            }}.
+            Clean deletes
+            <strong style="color: var(--as-text)">{{ selectedEntries.length }}</strong>
+            selected folder{{ selectedEntries.length === 1 ? "" : "s" }}.
+            Uncheck to keep.
           </p>
         </div>
       </div>
@@ -138,8 +134,8 @@ const appVersion = packageJson.version;
 
     <ConfirmCleanModal
       :open="showConfirm"
-      :count="filteredEntries.length"
-      :size-label="formatBytes(filteredTotal)"
+      :count="selectedEntries.length"
+      :size-label="formatBytes(selectedTotal)"
       :root-path="path"
       :busy="busy"
       @cancel="closeConfirm"

@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { computed, ref, watchEffect } from "vue";
 import type { JunkEntry } from "../types/junk";
 import { isHighRiskKind } from "../utils/kind";
 
-defineProps<{
+const props = defineProps<{
   entries: JunkEntry[];
+  selectedPaths: Set<string>;
   hasScanned: boolean;
   hasRawResults: boolean;
   canClean: boolean;
@@ -13,7 +15,27 @@ defineProps<{
 
 const emit = defineEmits<{
   clean: [];
+  toggle: [path: string];
+  toggleVisible: [on: boolean];
 }>();
+
+const headerCb = ref<HTMLInputElement | null>(null);
+
+const allVisibleOn = computed(
+  () =>
+    props.entries.length > 0 &&
+    props.entries.every((e) => props.selectedPaths.has(e.path)),
+);
+
+const someVisibleOn = computed(() =>
+  props.entries.some((e) => props.selectedPaths.has(e.path)),
+);
+
+watchEffect(() => {
+  if (headerCb.value) {
+    headerCb.value.indeterminate = someVisibleOn.value && !allVisibleOn.value;
+  }
+});
 </script>
 
 <template>
@@ -60,6 +82,17 @@ const emit = defineEmits<{
       <table class="table table-sm table-hover align-middle mb-0">
         <thead>
           <tr>
+            <th scope="col" style="width: 2.25rem">
+              <input
+                ref="headerCb"
+                type="checkbox"
+                class="form-check-input m-0"
+                style="accent-color: var(--as-green)"
+                :checked="allVisibleOn"
+                :aria-label="allVisibleOn ? 'Uncheck all visible' : 'Check all visible'"
+                @change="emit('toggleVisible', !allVisibleOn)"
+              />
+            </th>
             <th scope="col" style="width: 6.5rem">Size</th>
             <th scope="col" style="width: 7rem">Share</th>
             <th scope="col" style="width: 8rem">Type</th>
@@ -68,6 +101,16 @@ const emit = defineEmits<{
         </thead>
         <tbody>
           <tr v-for="e in entries" :key="e.path">
+            <td>
+              <input
+                type="checkbox"
+                class="form-check-input m-0"
+                style="accent-color: var(--as-green)"
+                :checked="selectedPaths.has(e.path)"
+                :aria-label="`Select ${e.path}`"
+                @change="emit('toggle', e.path)"
+              />
+            </td>
             <td class="as-size">{{ formatBytes(e.sizeBytes) }}</td>
             <td>
               <div class="as-share-bar" :title="`${sharePercent(e.sizeBytes).toFixed(0)}%`">
