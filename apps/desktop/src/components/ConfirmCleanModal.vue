@@ -67,8 +67,7 @@ onUnmounted(() => {
         <template v-if="rootPath">
           under <strong>{{ rootPath }}</strong>
         </template>
-        . Source projects stay; only matched artifact folders in the current
-        filter are removed.
+        . Source projects stay; only selected artifact folders are removed.
       </div>
       <div class="as-modal-footer">
         <button

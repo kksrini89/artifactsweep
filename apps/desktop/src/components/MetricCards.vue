@@ -62,7 +62,7 @@ const ringLabel = computed(() =>
             <p class="as-metric-value">{{ formatBytes(filteredTotal) }}</p>
             <p class="as-metric-sub">
               {{ filteredCount }} folder{{ filteredCount === 1 ? "" : "s" }}
-              match filters
+              selected
             </p>
           </div>
         </div>

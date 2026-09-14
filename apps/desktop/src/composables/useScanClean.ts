@@ -43,6 +43,7 @@ export function useScanClean() {
   const toast = ref<ToastMessage | null>(null);
   const error = ref<string | null>(null);
   const lastScannedPath = ref("");
+  const selectedPaths = ref(new Set<string>());
 
   let toastTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -51,15 +52,23 @@ export function useScanClean() {
     return entries.value.filter((e) => e.kind === filterKind.value);
   });
 
+  const selectedEntries = computed(() =>
+    filteredEntries.value.filter((e) => selectedPaths.value.has(e.path)),
+  );
+
   const filteredTotal = computed(() =>
     filteredEntries.value.reduce((sum, e) => sum + e.sizeBytes, 0),
+  );
+
+  const selectedTotal = computed(() =>
+    selectedEntries.value.reduce((sum, e) => sum + e.sizeBytes, 0),
   );
 
   const totalBytes = computed(() =>
     entries.value.reduce((sum, e) => sum + e.sizeBytes, 0),
   );
 
-  const largest = computed(() => filteredEntries.value[0] ?? null);
+  const largest = computed(() => selectedEntries.value[0] ?? null);
 
   const categories = computed(() => {
     const set = new Set(entries.value.map((e) => e.kind));
@@ -83,7 +92,10 @@ export function useScanClean() {
   const canClean = computed(() => {
     const root = path.value.trim();
     return (
-      !busy.value && root.length > 0 && root === lastScannedPath.value && filteredEntries.value.length > 0
+      !busy.value &&
+      root.length > 0 &&
+      root === lastScannedPath.value &&
+      selectedEntries.value.length > 0
     );
   });
 
@@ -130,7 +142,28 @@ export function useScanClean() {
     filterKind.value = "all";
     showConfirm.value = false;
     error.value = null;
-    lastScannedPath.value = '';
+    lastScannedPath.value = "";
+    selectedPaths.value = new Set();
+  }
+
+  function selectAll(list: JunkEntry[]) {
+    selectedPaths.value = new Set(list.map((e) => e.path));
+  }
+
+  function togglePath(path: string) {
+    const next = new Set(selectedPaths.value);
+    if (next.has(path)) next.delete(path);
+    else next.add(path);
+    selectedPaths.value = next;
+  }
+
+  function toggleVisible(on: boolean) {
+    const next = new Set(selectedPaths.value);
+    for (const e of filteredEntries.value) {
+      if (on) next.add(e.path);
+      else next.delete(e.path);
+    }
+    selectedPaths.value = next;
   }
 
   async function scan() {
@@ -152,6 +185,7 @@ export function useScanClean() {
       entries.value = mapEntries(result);
       lastScannedPath.value = root;
       filterKind.value = "all";
+      selectAll(entries.value);
       showToast(
         "ok",
         "Scan complete",
@@ -159,7 +193,8 @@ export function useScanClean() {
       );
     } catch (e) {
       entries.value = [];
-      lastScannedPath.value = '';
+      lastScannedPath.value = "";
+      selectedPaths.value = new Set();
       error.value = String(e);
       showToast("err", "Scan failed", String(e));
     } finally {
@@ -177,19 +212,19 @@ export function useScanClean() {
     showConfirm.value = false;
   }
 
-  /** Live clean currently filtered list after modal confirm. */
+  /** Live clean checked ∩ visible rows after modal confirm. */
   async function confirmClean() {
     if(!canClean.value) {
       showConfirm.value = false;
       return;
     }
-    const targets = filteredEntries.value;
+    const targets = selectedEntries.value;
     if (!targets.length) {
       showConfirm.value = false;
       return;
     }
 
-    const reclaimed = filteredTotal.value;
+    const reclaimed = selectedTotal.value;
     const n = targets.length;
     const paths = targets.map((e) => e.path);
 
@@ -209,8 +244,10 @@ export function useScanClean() {
       if (root) {
         const result = await invoke<JunkEntryDto[]>("scan", { path: root });
         entries.value = mapEntries(result);
+        selectAll(entries.value);
       } else {
         entries.value = [];
+        selectedPaths.value = new Set();
       }
       filterKind.value = "all";
 
@@ -244,7 +281,10 @@ export function useScanClean() {
     toast,
     error,
     filteredEntries,
+    selectedPaths,
+    selectedEntries,
     filteredTotal,
+    selectedTotal,
     totalBytes,
     largest,
     categories,
@@ -258,6 +298,8 @@ export function useScanClean() {
     chooseFolder,
     setPath,
     scan,
+    togglePath,
+    toggleVisible,
     openConfirm,
     closeConfirm,
     confirmClean,
