@@ -1,6 +1,6 @@
 [package]
 name = "desktop"
-version = "1.0.1"
+version = "1.0.2"
 description = "Desktop app for ArtifactSweep"
 authors = ["Srinivasan K K"]
 edition = "2021"
